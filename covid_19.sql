@@ -100,6 +100,35 @@ select *, (RollingVaccination/population)  from popVac
 SELECT sum(new_cases) as total_case,sum(new_deaths) as total_deaths, sum(new_deaths)/sum(new_cases) * 100 as DeathPercentage from covid
 where continent is not null
 
+--Drop temp table if exists
+Drop TEMP TABLE IF EXISTS PopulationVaccination
+-- using a temp table
+Create TEMP Table PopulationVaccination(
+location nvarchar(255),
+Date datetime,
+Population numeric,
+New_case numeric,
+RollingCase numeric,
+Vaccination numeric,
+RollingVaccination numeric
+)
+-- Insert the data to the temp table
+Insert INTO PopulationVaccination
+select dea.location, dea.date, dea.population,dea.new_cases,
+sum(new_cases) over (PARTITION by vac.location order by dea.location,dea.date) as RollingCase,
+vac.new_vaccinations,
+sum(new_vaccinations) over (PARTITION by vac.location order by dea.location,dea.date) as RollingVaccinations,
+from covid dea
+join covidVaccine vac
+on dea.location = vac.location
+and dea.date = vac.date
+--where dea.continent is not null
+--order by 1,2
+SELECT * from PopulationVaccination
+
+
+
+
 
 
 
